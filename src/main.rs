@@ -4,7 +4,7 @@ pub mod types;
 use crossterm::event::{Event, KeyCode};
 use ratatui::{DefaultTerminal, widgets::ListState};
 
-use crate::types::app::{App, NavigationType};
+use crate::types::app::{App, Mode, NavigationType};
 
 fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
@@ -16,6 +16,7 @@ fn app(terminal: &mut DefaultTerminal) -> std::io::Result<()> {
     let list_state = ListState::default().with_selected(Some(0));
     let mut app = App {
         running: true,
+        mode: Mode::NORMAL,
         todos: mocks::todo::mock_todos(),
         list_state,
     };
@@ -28,27 +29,40 @@ fn app(terminal: &mut DefaultTerminal) -> std::io::Result<()> {
                 continue;
             }
 
-            match key.code {
-                KeyCode::Char('q') => {
-                    app.running = false;
+            match app.mode {
+                Mode::NORMAL => match key.code {
+                    KeyCode::Char('q') => {
+                        app.running = false;
+                    }
+                    KeyCode::Down => {
+                        app.navigate(NavigationType::Increment);
+                    }
+                    KeyCode::Up => {
+                        app.navigate(NavigationType::Decrement);
+                    }
+                    KeyCode::Char(' ') => {
+                        app.toggle_current_todo();
+                    }
+                    KeyCode::Char('d') => {
+                        app.delete_current_todo();
+                    }
+                    KeyCode::Char('i') => {
+                        app.set_mode(Mode::INSERT);
+                    }
+                    _ => {}
                 },
-                KeyCode::Down => {
-                    app.navigate(NavigationType::Increment);
-                },
-                KeyCode::Up => {
-                    app.navigate(NavigationType::Decrement);
-                },
-                KeyCode::Char(' ') => {
-                    app.toggle_current_todo();
-                },
-                KeyCode::Char('d') => {
-                    app.delete_current_todo();
-                },
-                _ => {}
+                Mode::INSERT => match key.code {
+                    KeyCode::Char('q') => {
+                        app.running = false;
+                    }
+                    KeyCode::Esc => {
+                        app.set_mode(Mode::NORMAL);
+                    }
+                    _ => {}
+                }
             }
         }
     }
 
     Ok(())
 }
-
