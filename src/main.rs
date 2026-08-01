@@ -19,6 +19,7 @@ fn app(terminal: &mut DefaultTerminal) -> std::io::Result<()> {
         mode: Mode::Normal,
         todos: mocks::todo::mock_todos(),
         list_state,
+        user_input: String::new(),
     };
 
     while app.running {
@@ -52,11 +53,21 @@ fn app(terminal: &mut DefaultTerminal) -> std::io::Result<()> {
                     _ => {}
                 },
                 Mode::Insert => match key.code {
+                    KeyCode::Char(c) => {
+                        app.user_input.push(c);
+                    }
+                    KeyCode::Backspace => {
+                        app.user_input.pop();
+                    }
+                    KeyCode::Enter => {
+                        app.add_todo_from_user_input();
+                    }
                     KeyCode::Esc => {
+                        app.user_input = String::new();
                         app.set_mode(Mode::Normal);
                     }
                     _ => {}
-                }
+                },
             }
         }
     }
