@@ -51,21 +51,22 @@ impl App {
     }
 
     pub fn toggle_current_todo(&mut self) {
-        let curr = self
-            .todos
-            .get_mut(self.list_state.selected().unwrap())
-            .unwrap();
-        curr.completed = !curr.completed;
+        if let Some(idx) = self.list_state.selected()
+            && let Some(curr) = self.todos.get_mut(idx)
+        {
+            curr.completed = !curr.completed;
+        }
     }
 
     pub fn delete_current_todo(&mut self) {
-        let curr_idx = self.list_state.selected().unwrap();
-        self.todos.remove(curr_idx);
+        if let Some(curr_idx) = self.list_state.selected() {
+            self.todos.remove(curr_idx);
 
-        if self.todos.is_empty() {
-            self.list_state.select(None);
-        } else if curr_idx >= self.todos.len() {
-            self.list_state.select(Some(self.todos.len() - 1));
+            if self.todos.is_empty() {
+                self.list_state.select(None);
+            } else if curr_idx >= self.todos.len() {
+                self.list_state.select(Some(self.todos.len() - 1));
+            }
         }
     }
 
@@ -73,7 +74,7 @@ impl App {
         match self.mode {
             Mode::Insert => {
                 let user_input = self.user_input.trim().to_string();
-                if user_input.len() > 0 {
+                if !user_input.is_empty() {
                     let todo = Todo {
                         title: user_input,
                         completed: false,
