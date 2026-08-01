@@ -43,6 +43,17 @@ impl App {
         curr.completed = !curr.completed; 
     }
 
+    pub fn delete_current_todo(&mut self) {
+        let curr_idx = self.list_state.selected().unwrap();
+        self.todos.remove(curr_idx);
+
+        if self.todos.is_empty() {
+            self.list_state.select(None);
+        } else if curr_idx >= self.todos.len() {
+           self.list_state.select(Some(self.todos.len() - 1)); 
+        }
+    }
+
     pub fn render(&mut self, frame: &mut Frame) {
         let list_items: Vec<ListItem> = self.todos.iter().map(|todo| {
             ListItem::new(App::format_todo(todo))

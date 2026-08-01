@@ -40,7 +40,10 @@ fn app(terminal: &mut DefaultTerminal) -> std::io::Result<()> {
                 },
                 KeyCode::Char(' ') => {
                     app.toggle_current_todo();
-                }
+                },
+                KeyCode::Char('d') => {
+                    app.delete_current_todo();
+                },
                 _ => {}
             }
         }
