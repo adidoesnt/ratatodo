@@ -29,10 +29,8 @@ impl App {
         };
         let id = &todo.id;
         let title = &todo.title;
-        let default_desc = String::from("No description provided.");
-        let desc = &todo.description.as_ref().unwrap_or(&default_desc);
 
-        format!("{checkbox} | {id}) {title}: {desc}")
+        format!("{checkbox} | {id}) {title}")
     }
 
     pub fn set_mode(&mut self, mode: Mode) {
