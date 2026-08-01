@@ -4,7 +4,7 @@ pub mod types;
 use crossterm::event::{Event, KeyCode};
 use ratatui::{DefaultTerminal, widgets::ListState};
 
-use crate::types::app::App;
+use crate::types::app::{App, NavigationType};
 
 fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
@@ -31,7 +31,13 @@ fn app(terminal: &mut DefaultTerminal) -> std::io::Result<()> {
             match key.code {
                 KeyCode::Char('q') => {
                     app.running = false;
-                }
+                },
+                KeyCode::Down => {
+                    app.navigate(NavigationType::Increment);
+                },
+                KeyCode::Up => {
+                    app.navigate(NavigationType::Decrement);
+                },
                 _ => {}
             }
         }

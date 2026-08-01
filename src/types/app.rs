@@ -2,6 +2,11 @@ use ratatui::{Frame, style::Style, widgets::{List, ListItem, ListState}};
 
 use crate::types::todo::Todo;
 
+pub enum NavigationType {
+    Increment,
+    Decrement
+}
+
 pub struct App {
     pub running: bool,
     pub todos: Vec<Todo>,
@@ -20,6 +25,17 @@ impl App {
         let desc = &todo.description.as_ref().unwrap_or(&default_desc);
 
         format!("{checkbox} | {id}) {title}: {desc}")
+    }
+
+    pub fn navigate(&mut self, nav_type: NavigationType) {
+        match nav_type {
+            NavigationType::Increment => {
+                self.list_state.select_next();
+            },
+            NavigationType::Decrement => {
+                self.list_state.select_previous();
+            }
+        }
     }
 
     pub fn render(&mut self, frame: &mut Frame) {
