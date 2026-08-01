@@ -16,7 +16,7 @@ fn app(terminal: &mut DefaultTerminal) -> std::io::Result<()> {
     let list_state = ListState::default().with_selected(Some(0));
     let mut app = App {
         running: true,
-        mode: Mode::NORMAL,
+        mode: Mode::Normal,
         todos: mocks::todo::mock_todos(),
         list_state,
     };
@@ -30,7 +30,7 @@ fn app(terminal: &mut DefaultTerminal) -> std::io::Result<()> {
             }
 
             match app.mode {
-                Mode::NORMAL => match key.code {
+                Mode::Normal => match key.code {
                     KeyCode::Char('q') => {
                         app.running = false;
                     }
@@ -47,16 +47,13 @@ fn app(terminal: &mut DefaultTerminal) -> std::io::Result<()> {
                         app.delete_current_todo();
                     }
                     KeyCode::Char('i') => {
-                        app.set_mode(Mode::INSERT);
+                        app.set_mode(Mode::Insert);
                     }
                     _ => {}
                 },
-                Mode::INSERT => match key.code {
-                    KeyCode::Char('q') => {
-                        app.running = false;
-                    }
+                Mode::Insert => match key.code {
                     KeyCode::Esc => {
-                        app.set_mode(Mode::NORMAL);
+                        app.set_mode(Mode::Normal);
                     }
                     _ => {}
                 }

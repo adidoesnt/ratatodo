@@ -1,14 +1,12 @@
 use ratatui::{
-    Frame,
-    style::Style,
-    widgets::{List, ListItem, ListState},
+    Frame, style::Style, widgets::{Block, List, ListItem, ListState},
 };
 
 use crate::types::todo::Todo;
 
 pub enum Mode {
-    NORMAL,
-    INSERT,
+    Normal,
+    Insert,
 }
 
 pub enum NavigationType {
@@ -77,7 +75,12 @@ impl App {
             .iter()
             .map(|todo| ListItem::new(App::format_todo(todo)))
             .collect();
-        let list = List::new(list_items).highlight_style(Style::new().reversed());
+        let title = match self.mode {
+            Mode::Normal => "NORMAL",
+            Mode::Insert => "INSERT"
+        };
+        let block = Block::bordered().title(title);
+        let list = List::new(list_items).highlight_style(Style::new().reversed()).block(block);
         frame.render_stateful_widget(list, frame.area(), &mut self.list_state);
     }
 }
