@@ -38,6 +38,9 @@ fn app(terminal: &mut DefaultTerminal) -> std::io::Result<()> {
                 KeyCode::Up => {
                     app.navigate(NavigationType::Decrement);
                 },
+                KeyCode::Char(' ') => {
+                    app.toggle_current_todo();
+                }
                 _ => {}
             }
         }

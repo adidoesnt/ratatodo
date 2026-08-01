@@ -38,6 +38,11 @@ impl App {
         }
     }
 
+    pub fn toggle_current_todo(&mut self) {
+        let curr = self.todos.get_mut(self.list_state.selected().unwrap()).unwrap();
+        curr.completed = !curr.completed; 
+    }
+
     pub fn render(&mut self, frame: &mut Frame) {
         let list_items: Vec<ListItem> = self.todos.iter().map(|todo| {
             ListItem::new(App::format_todo(todo))
