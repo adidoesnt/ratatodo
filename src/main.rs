@@ -6,7 +6,8 @@ use ratatui::{DefaultTerminal, widgets::ListState};
 
 use crate::types::app::{App, Mode, NavigationType};
 
-fn main() -> color_eyre::Result<()> {
+#[tokio::main]
+async fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
     ratatui::run(app)?;
     Ok(())
