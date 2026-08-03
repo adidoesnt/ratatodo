@@ -1,5 +1,5 @@
 CREATE TABLE todos (
-  id SERIAL PRIMARY KEY,
+  id INTEGER PRIMARY KEY,
   title TEXT,
   completed BOOLEAN
 );
