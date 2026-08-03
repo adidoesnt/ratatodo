@@ -3,17 +3,28 @@ pub mod types;
 
 use crossterm::event::{Event, KeyCode};
 use ratatui::{DefaultTerminal, widgets::ListState};
+use sqlx::SqlitePool;
 
 use crate::types::app::{App, Mode, NavigationType};
 
 #[tokio::main]
 async fn main() -> color_eyre::Result<()> {
+    let pool = SqlitePool::connect("sqlite::ratatodo.db")
+        .await
+        .map_err(|e| {
+            std::io::Error::other(
+                format!("Failed to connect to database: {e}"),
+            )
+        })?;
+
     color_eyre::install()?;
-    ratatui::run(app)?;
+    ratatui::run(|terminal| {
+        let _ = app(terminal, pool);
+    });
     Ok(())
 }
 
-fn app(terminal: &mut DefaultTerminal) -> std::io::Result<()> {
+fn app(terminal: &mut DefaultTerminal, pool: SqlitePool) -> std::io::Result<()> {
     let list_state = ListState::default().with_selected(Some(0));
     let mut app = App {
         running: true,
@@ -21,6 +32,7 @@ fn app(terminal: &mut DefaultTerminal) -> std::io::Result<()> {
         todos: mocks::todo::mock_todos(),
         list_state,
         user_input: String::new(),
+        db_conn_pool: pool,
     };
 
     while app.running {

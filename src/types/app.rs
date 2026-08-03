@@ -3,6 +3,7 @@ use ratatui::{
     style::Style,
     widgets::{Block, List, ListItem, ListState},
 };
+use sqlx::SqlitePool;
 
 use crate::types::todo::Todo;
 
@@ -22,6 +23,7 @@ pub struct App {
     pub todos: Vec<Todo>,
     pub list_state: ListState,
     pub user_input: String,
+    pub db_conn_pool: SqlitePool,
 }
 
 impl App {
