@@ -1,6 +1,6 @@
-use std::io::Result;
+use std::{io::Result, str::FromStr};
 
-use sqlx::SqlitePool;
+use sqlx::{SqlitePool, sqlite::{SqliteConnectOptions, SqlitePoolOptions}};
 
 use crate::types::todo::Todo;
 
@@ -10,7 +10,11 @@ pub struct Repository {
 
 impl Repository {
     pub async fn new() -> std::io::Result<Self> {
-        let pool = SqlitePool::connect("sqlite::ratatodo.db")
+        let opts = SqliteConnectOptions::from_str("sqlite:ratatodo.db")
+            .map_err(|e| std::io::Error::other(format!("Invalid database URL: {e}")))?
+            .create_if_missing(true);
+        let pool = SqlitePoolOptions::new()
+            .connect_with(opts)
             .await
             .map_err(|e| std::io::Error::other(format!("Failed to connect to database: {e}")))?;
 

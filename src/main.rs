@@ -2,16 +2,20 @@ pub mod types;
 
 use crossterm::event::{Event, KeyCode};
 use ratatui::DefaultTerminal;
-use tokio::runtime::Handle;
+use tokio::runtime::Runtime;
 
 use crate::types::{app::{App, Mode, NavigationType}, repository::Repository};
 
-#[tokio::main]
-async fn main() -> color_eyre::Result<()> {
+fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
 
-    let repo = Repository::new().await?;
-    let mut app = App::new(repo, Handle::current()).await?;
+    let runtime = Runtime::new()?;
+    let handle = runtime.handle().clone();
+    let mut app = runtime.block_on(async {
+        let repo = Repository::new().await?;
+        App::new(repo, handle).await
+    })?;
+
     ratatui::run(|terminal| run_app(terminal, &mut app))?;
     Ok(())
 }

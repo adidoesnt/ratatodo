@@ -74,12 +74,20 @@ impl App {
             && let Some(curr) = self.todos.get_mut(idx)
         {
             curr.completed = !curr.completed;
+            if let Some(id) = curr.id {
+                let _ = self
+                    .handle
+                    .block_on(self.repository.toggle_todo(id, curr.completed));
+            }
         }
     }
 
     pub fn delete_current_todo(&mut self) {
         if let Some(curr_idx) = self.list_state.selected() {
-            self.todos.remove(curr_idx);
+            let todo = self.todos.remove(curr_idx);
+            if let Some(id) = todo.id {
+                let _ = self.handle.block_on(self.repository.delete_todo(id));
+            }
 
             if self.todos.is_empty() {
                 self.list_state.select(None);
@@ -94,12 +102,12 @@ impl App {
             Mode::Insert => {
                 let user_input = self.user_input.trim().to_string();
                 if !user_input.is_empty() {
-                    let todo = Todo {
-                        id: None,
-                        title: user_input,
-                        completed: false,
-                    };
-                    self.todos.push(todo);
+                    if let Ok(todo) = self
+                        .handle
+                        .block_on(self.repository.add_todo(&user_input))
+                    {
+                        self.todos.push(todo);
+                    }
                     self.mode = Mode::Normal;
                     self.user_input = String::new();
                 }
