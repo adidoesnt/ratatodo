@@ -4,6 +4,7 @@ use ratatui::{
     widgets::{Block, List, ListItem, ListState},
 };
 use sqlx::SqlitePool;
+use tokio::runtime::Handle;
 
 use crate::types::todo::Todo;
 
@@ -24,9 +25,30 @@ pub struct App {
     pub list_state: ListState,
     pub user_input: String,
     pub db_conn_pool: SqlitePool,
+    pub handle: Handle,
 }
 
 impl App {
+    pub async fn new(pool: SqlitePool, handle: Handle) -> std::io::Result<Self> {
+        let todos = sqlx::query_as::<_, Todo>("SELECT id, title, completed FROM todos")
+            .fetch_all(&pool)
+            .await
+            .map_err(|e| std::io::Error::other(format!("Failed to load todos: {e}")))?;
+
+        let list_state =
+            ListState::default().with_selected(if todos.is_empty() { None } else { Some(0) });
+
+        Ok(Self {
+            running: true,
+            mode: Mode::Normal,
+            todos,
+            list_state,
+            user_input: String::new(),
+            db_conn_pool: pool,
+            handle,
+        })
+    }
+
     fn format_todo(todo: &Todo, index: usize) -> String {
         let checkbox = match todo.completed {
             true => "[x]",
@@ -78,6 +100,7 @@ impl App {
                 let user_input = self.user_input.trim().to_string();
                 if !user_input.is_empty() {
                     let todo = Todo {
+                        id: None,
                         title: user_input,
                         completed: false,
                     };

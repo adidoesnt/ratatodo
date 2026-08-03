@@ -2,39 +2,28 @@ pub mod mocks;
 pub mod types;
 
 use crossterm::event::{Event, KeyCode};
-use ratatui::{DefaultTerminal, widgets::ListState};
+use ratatui::DefaultTerminal;
 use sqlx::SqlitePool;
+use tokio::runtime::Handle;
 
 use crate::types::app::{App, Mode, NavigationType};
 
 #[tokio::main]
 async fn main() -> color_eyre::Result<()> {
+    color_eyre::install()?;
+
     let pool = SqlitePool::connect("sqlite::ratatodo.db")
         .await
         .map_err(|e| {
-            std::io::Error::other(
-                format!("Failed to connect to database: {e}"),
-            )
+            std::io::Error::other(format!("Failed to connect to database: {e}"))
         })?;
 
-    color_eyre::install()?;
-    ratatui::run(|terminal| {
-        let _ = app(terminal, pool);
-    });
+    let mut app = App::new(pool, Handle::current()).await?;
+    ratatui::run(|terminal| run_app(terminal, &mut app))?;
     Ok(())
 }
 
-fn app(terminal: &mut DefaultTerminal, pool: SqlitePool) -> std::io::Result<()> {
-    let list_state = ListState::default().with_selected(Some(0));
-    let mut app = App {
-        running: true,
-        mode: Mode::Normal,
-        todos: mocks::todo::mock_todos(),
-        list_state,
-        user_input: String::new(),
-        db_conn_pool: pool,
-    };
-
+fn run_app(terminal: &mut DefaultTerminal, app: &mut App) -> std::io::Result<()> {
     while app.running {
         terminal.draw(|frame| app.render(frame))?;
         if let Event::Key(key) = crossterm::event::read()? {
