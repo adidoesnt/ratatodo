@@ -1,24 +1,17 @@
-pub mod mocks;
 pub mod types;
 
 use crossterm::event::{Event, KeyCode};
 use ratatui::DefaultTerminal;
-use sqlx::SqlitePool;
 use tokio::runtime::Handle;
 
-use crate::types::app::{App, Mode, NavigationType};
+use crate::types::{app::{App, Mode, NavigationType}, repository::Repository};
 
 #[tokio::main]
 async fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
 
-    let pool = SqlitePool::connect("sqlite::ratatodo.db")
-        .await
-        .map_err(|e| {
-            std::io::Error::other(format!("Failed to connect to database: {e}"))
-        })?;
-
-    let mut app = App::new(pool, Handle::current()).await?;
+    let repo = Repository::new().await?;
+    let mut app = App::new(repo, Handle::current()).await?;
     ratatui::run(|terminal| run_app(terminal, &mut app))?;
     Ok(())
 }

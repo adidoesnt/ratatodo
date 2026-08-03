@@ -3,10 +3,9 @@ use ratatui::{
     style::Style,
     widgets::{Block, List, ListItem, ListState},
 };
-use sqlx::SqlitePool;
 use tokio::runtime::Handle;
 
-use crate::types::todo::Todo;
+use crate::types::{repository::Repository, todo::Todo};
 
 pub enum Mode {
     Normal,
@@ -24,17 +23,13 @@ pub struct App {
     pub todos: Vec<Todo>,
     pub list_state: ListState,
     pub user_input: String,
-    pub db_conn_pool: SqlitePool,
+    pub repository: Repository,
     pub handle: Handle,
 }
 
 impl App {
-    pub async fn new(pool: SqlitePool, handle: Handle) -> std::io::Result<Self> {
-        let todos = sqlx::query_as::<_, Todo>("SELECT id, title, completed FROM todos")
-            .fetch_all(&pool)
-            .await
-            .map_err(|e| std::io::Error::other(format!("Failed to load todos: {e}")))?;
-
+    pub async fn new(repo: Repository, handle: Handle) -> std::io::Result<Self> {
+        let todos = repo.get_all_todos().await?;
         let list_state =
             ListState::default().with_selected(if todos.is_empty() { None } else { Some(0) });
 
@@ -44,7 +39,7 @@ impl App {
             todos,
             list_state,
             user_input: String::new(),
-            db_conn_pool: pool,
+            repository: repo,
             handle,
         })
     }
