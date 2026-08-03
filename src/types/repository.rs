@@ -23,4 +23,33 @@ impl Repository {
             .await
             .map_err(|e| std::io::Error::other(format!("Failed to fetch todos: {e}")))
     }
+
+    pub async fn add_todo(&self, title: &str) -> Result<Todo> {
+        sqlx::query_as::<_, Todo>(
+            "INSERT INTO todos (title, completed) VALUES (?, false) RETURNING id, title, completed",
+        )
+        .bind(title)
+        .fetch_one(&self.pool)
+        .await
+        .map_err(|e| std::io::Error::other(format!("Failed to add todo: {e}")))
+    }
+
+    pub async fn toggle_todo(&self, id: i64, completed: bool) -> Result<()> {
+        sqlx::query("UPDATE todos SET completed = ? WHERE id = ?")
+            .bind(completed)
+            .bind(id)
+            .execute(&self.pool)
+            .await
+            .map_err(|e| std::io::Error::other(format!("Failed to toggle todo: {e}")))?;
+        Ok(())
+    }
+
+    pub async fn delete_todo(&self, id: i64) -> Result<()> {
+        sqlx::query("DELETE FROM todos WHERE id = ?")
+            .bind(id)
+            .execute(&self.pool)
+            .await
+            .map_err(|e| std::io::Error::other(format!("Failed to delete todo: {e}")))?;
+        Ok(())
+    }
 }
